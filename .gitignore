@@ -1,0 +1,19 @@
+# --- Secrets / local config ---
+# Real secrets live in .env (read by docker-compose). Never commit it.
+.env
+*.env
+!.env.example
+
+# --- OS / editor noise ---
+.DS_Store
+Thumbs.db
+*.swp
+
+# --- IDE (root-level only; backend/frontend keep their own ignores) ---
+.idea/
+*.iml
+.vscode/
+
+
+# --- Logs ---
+*.log
