@@ -1,0 +1,18 @@
+# Build output
+target/
+
+# Git
+.git
+.gitignore
+.gitattributes
+
+# IDE / editor
+.vscode/
+.idea/
+*.code-workspace
+
+# Docs & local env
+HELP.md
+Readme.md
+.env
+.env-example

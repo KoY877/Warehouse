@@ -14,6 +14,8 @@ Thumbs.db
 *.iml
 .vscode/
 
-
 # --- Logs ---
 *.log
+
+# ---   firebase ----
+firebase-service-account.json

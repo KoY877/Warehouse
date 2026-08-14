@@ -83,6 +83,14 @@
 			<artifactId>spring-boot-starter-webmvc-test</artifactId>
 			<scope>test</scope>
 		</dependency>
+
+		<!-- Firebase Admin SDK - version 9.10.0, dernière release au 22.07.2026 -->
+		<!-- Source: https://central.sonatype.com/artifact/com.google.firebase/firebase-admin -->
+		<dependency>
+			<groupId>com.google.firebase</groupId>
+			<artifactId>firebase-admin</artifactId>
+			<version>9.10.0</version>
+		</dependency>
 	</dependencies>
 
 	<build>
@@ -137,5 +145,4 @@
 			</plugin>
 		</plugins>
 	</build>
-
 </project>
