@@ -2,6 +2,7 @@ package io.github.koy877.warehouse.service;
 
 import java.util.List;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -20,6 +21,16 @@ import lombok.RequiredArgsConstructor;
 public class UserService {
 
     private final UserRepository userRepository;
+
+    /**
+     * Loest das Henne-Ei-Problem beim ersten ADMIN: PATCH /role setzt selbst
+     * schon ADMIN voraus, also gibt es sonst keinen Weg ueber die API, den
+     * allerersten Admin anzulegen. Default leerer String (kein Bootstrap
+     * aktiv) statt null, damit der Vergleich unten ohne Null-Check auskommt -
+     * auch unter Mockito @InjectMocks, wo @Value nicht ausgewertet wird.
+     */
+    @Value("${ADMIN_BOOTSTRAP_EMAIL:}")
+    private String adminBootstrapEmail = "";
 
     @Transactional(readOnly = true)
     public List<UserResponse> findAll() {
@@ -69,10 +80,14 @@ public class UserService {
     @Transactional
     public User loadOrProvisionUser(FirebaseToken decodedToken) {
         return userRepository.findByFirebaseUid(decodedToken.getUid())
-            .orElseGet(() -> userRepository.save(new User(
-                    decodedToken.getUid(),
-                    decodedToken.getEmail(),
-                    decodedToken.getName() != null ? decodedToken.getName() : decodedToken.getEmail()
-        )));
+            .orElseGet(() -> {
+                String email = decodedToken.getEmail();
+                String displayName = decodedToken.getName() != null ? decodedToken.getName() : email;
+                Role role = !adminBootstrapEmail.isBlank() && adminBootstrapEmail.equalsIgnoreCase(email)
+                        ? Role.ADMIN
+                        : Role.LAGERIST;
+
+                return userRepository.save(new User(decodedToken.getUid(), email, displayName, role));
+            });
     }
 }

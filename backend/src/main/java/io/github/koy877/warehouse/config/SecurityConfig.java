@@ -35,20 +35,20 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-                .csrf(AbstractHttpConfigurer::disable)
-                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/users/**").hasRole("ADMIN")
-                        .requestMatchers(HttpMethod.POST, "/api/locations/**").hasRole("ADMIN")
-                        .requestMatchers(HttpMethod.PUT, "/api/locations/**").hasRole("ADMIN")
-                        .requestMatchers(HttpMethod.DELETE, "/api/locations/**").hasRole("ADMIN")
-                        .requestMatchers(HttpMethod.POST, "/api/products/**").hasRole("ADMIN")
-                        .requestMatchers(HttpMethod.PUT, "/api/products/**").hasRole("ADMIN")
-                        .requestMatchers(HttpMethod.DELETE, "/api/products/**").hasRole("ADMIN")
-                        .anyRequest().authenticated())
-                .addFilterBefore(
-                        new FirebaseAuthenticationFilter(userService),
-                        UsernamePasswordAuthenticationFilter.class);
+            .csrf(AbstractHttpConfigurer::disable)
+            .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+            .authorizeHttpRequests(auth -> auth
+                    .requestMatchers("/api/users/**").hasRole("ADMIN")
+                    .requestMatchers(HttpMethod.POST, "/api/locations/**").hasRole("ADMIN")
+                    .requestMatchers(HttpMethod.PUT, "/api/locations/**").hasRole("ADMIN")
+                    .requestMatchers(HttpMethod.DELETE, "/api/locations/**").hasRole("ADMIN")
+                    .requestMatchers(HttpMethod.POST, "/api/products/**").hasRole("ADMIN")
+                    .requestMatchers(HttpMethod.PUT, "/api/products/**").hasRole("ADMIN")
+                    .requestMatchers(HttpMethod.DELETE, "/api/products/**").hasRole("ADMIN")
+                    .anyRequest().authenticated())
+            .addFilterBefore(
+                    new FirebaseAuthenticationFilter(userService),
+                    UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }

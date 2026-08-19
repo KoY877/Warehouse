@@ -62,16 +62,27 @@ public class User {
     private Instant updatedAt;
 
     /**
-     * Wird ausschliesslich beim Auto-Provisioning eines neuen Firebase-Users
-     * verwendet (siehe FirebaseAuthenticationFilter). Rolle wird bewusst
-     * serverseitig auf LAGERIST gesetzt und nie aus einem Request-DTO
-     * uebernommen.
+     * Wird beim Auto-Provisioning eines neuen Firebase-Users ohne
+     * Admin-Bootstrap-Treffer verwendet (siehe FirebaseAuthenticationFilter).
+     * Rolle wird bewusst serverseitig auf LAGERIST gesetzt und nie aus einem
+     * Request-DTO uebernommen.
      */
     public User(String firebaseUid, String email, String displayName) {
+        this(firebaseUid, email, displayName, Role.LAGERIST);
+    }
+
+    /**
+     * Nur fuer den Admin-Bootstrap gedacht (siehe
+     * UserService.loadOrProvisionUser): die Rolle stammt aus dem
+     * serverseitigen Vergleich der Token-E-Mail mit ADMIN_BOOTSTRAP_EMAIL,
+     * nie aus einem Request-DTO - daher kein Verstoss gegen "kein
+     * oeffentliches setRole()".
+     */
+    public User(String firebaseUid, String email, String displayName, Role role) {
         this.firebaseUid = firebaseUid;
         this.email = email;
         this.displayName = displayName;
-        this.role = Role.LAGERIST;
+        this.role = role;
     }
 
     /**

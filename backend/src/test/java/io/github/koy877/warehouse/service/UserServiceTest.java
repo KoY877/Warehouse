@@ -17,6 +17,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.test.util.ReflectionTestUtils;
 
 import com.google.firebase.auth.FirebaseToken;
 
@@ -160,5 +161,37 @@ class UserServiceTest {
         User result = userService.loadOrProvisionUser(token);
 
         assertThat(result.getDisplayName()).isEqualTo("neu@warehouse.io");
+    }
+
+    @Test
+    void loadOrProvisionUser_legtErstenAdminAn_wennEmailAdminBootstrapEmailEntspricht() {
+        ReflectionTestUtils.setField(userService, "adminBootstrapEmail", "boss@warehouse.io");
+
+        FirebaseToken token = mock(FirebaseToken.class);
+        when(token.getUid()).thenReturn("neue-firebase-uid");
+        when(token.getEmail()).thenReturn("Boss@Warehouse.io");
+        when(token.getName()).thenReturn("Der Chef");
+        when(userRepository.findByFirebaseUid("neue-firebase-uid")).thenReturn(Optional.empty());
+        when(userRepository.save(any(User.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        User result = userService.loadOrProvisionUser(token);
+
+        assertThat(result.getRole()).isEqualTo(Role.ADMIN);
+    }
+
+    @Test
+    void loadOrProvisionUser_legtNeuenUserAnMitRolleLagerist_wennAdminBootstrapEmailNichtGesetzt() {
+        ReflectionTestUtils.setField(userService, "adminBootstrapEmail", "");
+
+        FirebaseToken token = mock(FirebaseToken.class);
+        when(token.getUid()).thenReturn("neue-firebase-uid");
+        when(token.getEmail()).thenReturn("neu@warehouse.io");
+        when(token.getName()).thenReturn("Neuer User");
+        when(userRepository.findByFirebaseUid("neue-firebase-uid")).thenReturn(Optional.empty());
+        when(userRepository.save(any(User.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        User result = userService.loadOrProvisionUser(token);
+
+        assertThat(result.getRole()).isEqualTo(Role.LAGERIST);
     }
 }

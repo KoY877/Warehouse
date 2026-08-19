@@ -25,6 +25,7 @@ services:
       SPRING_DATASOURCE_USERNAME: ${DB_USERNAME}
       SPRING_DATASOURCE_PASSWORD: ${DB_PASSWORD}
       FIREBASE_SERVICE_ACCOUNT_PATH: "${FIREBASE_SERVICE_ACCOUNT_PATH}"
+      ADMIN_BOOTSTRAP_EMAIL: "${ADMIN_BOOTSTRAP_EMAIL:-}"
     depends_on:
       postgres:
         condition: service_healthy
