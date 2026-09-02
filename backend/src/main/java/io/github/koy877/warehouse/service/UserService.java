@@ -85,7 +85,7 @@ public class UserService {
                 String displayName = decodedToken.getName() != null ? decodedToken.getName() : email;
                 Role role = !adminBootstrapEmail.isBlank() && adminBootstrapEmail.equalsIgnoreCase(email)
                         ? Role.ADMIN
-                        : Role.LAGERIST;
+                        : Role.WAREHOUSE_OPERATOR;
 
                 return userRepository.save(new User(decodedToken.getUid(), email, displayName, role));
             });

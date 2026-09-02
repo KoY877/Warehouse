@@ -5,6 +5,8 @@ import java.io.IOException;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Profile;
+
 import com.google.auth.oauth2.GoogleCredentials;
 import com.google.firebase.FirebaseApp;
 import com.google.firebase.FirebaseOptions;
@@ -17,6 +19,8 @@ import jakarta.annotation.PostConstruct;
  * (siehe application.properties), die Datei selbst ist gitignored -
  * analog zur .env-Konvention im Helpdesk-Projekt.
  */
+
+@Profile("!test")
 @Configuration
 public class FirebaseConfig {
     @Value("${FIREBASE_SERVICE_ACCOUNT_PATH}")

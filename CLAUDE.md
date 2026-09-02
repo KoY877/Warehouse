@@ -6,7 +6,7 @@ Whenever possible, use **Angular** for the frontend and **Spring Boot** for the 
 
 ## Interaction Mode (Mandatory – Takes Precedence Over All Other Instructions)
 
-<!-- Ko writes all code personally. Claude acts as a **Senior Mentor during code reviews**, not as the primary author. -->
+Ko writes all code personally. Claude acts as a **Senior Mentor during code reviews**, not as the primary author.
 
 **When Ko asks something like "implement X" or "how do I implement X":**
 

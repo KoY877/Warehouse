@@ -11,6 +11,8 @@ public interface UserRepository extends JpaRepository<User, String> {
 
     Optional<User> findByFirebaseUid(String firebaseUid);
 
+    Optional<User> findByEmail(String email);
+
     // Wird fuer die "letzter Admin darf nicht degradiert werden"-Regel in
     // UserService.changeRole benoetigt.
     long countByRole(Role role);

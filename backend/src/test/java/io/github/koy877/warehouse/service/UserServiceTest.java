@@ -76,7 +76,7 @@ class UserServiceTest {
         UserResponse result = userService.findById(lagerist.getId());
 
         assertThat(result.id()).isEqualTo(lagerist.getId());
-        assertThat(result.role()).isEqualTo(Role.LAGERIST);
+        assertThat(result.role()).isEqualTo(Role.WAREHOUSE_OPERATOR);
     }
 
     @Test
@@ -85,9 +85,9 @@ class UserServiceTest {
         when(userRepository.countByRole(Role.ADMIN)).thenReturn(2L);
         when(userRepository.save(admin)).thenReturn(admin);
 
-        UserResponse result = userService.changeRole(admin.getId(), Role.LAGERIST);
+        UserResponse result = userService.changeRole(admin.getId(), Role.WAREHOUSE_OPERATOR);
 
-        assertThat(result.role()).isEqualTo(Role.LAGERIST);
+        assertThat(result.role()).isEqualTo(Role.WAREHOUSE_OPERATOR);
         verify(userRepository).save(admin);
     }
 
@@ -96,7 +96,7 @@ class UserServiceTest {
         when(userRepository.findById(admin.getId())).thenReturn(Optional.of(admin));
         when(userRepository.countByRole(Role.ADMIN)).thenReturn(1L);
 
-        assertThatThrownBy(() -> userService.changeRole(admin.getId(), Role.LAGERIST))
+        assertThatThrownBy(() -> userService.changeRole(admin.getId(), Role.WAREHOUSE_OPERATOR))
                 .isInstanceOf(ConflictException.class);
 
         verify(userRepository, never()).save(any());
@@ -146,7 +146,7 @@ class UserServiceTest {
 
         assertThat(result.getFirebaseUid()).isEqualTo("neue-firebase-uid");
         assertThat(result.getDisplayName()).isEqualTo("Neuer User");
-        assertThat(result.getRole()).isEqualTo(Role.LAGERIST);
+        assertThat(result.getRole()).isEqualTo(Role.WAREHOUSE_OPERATOR);
     }
 
     @Test
@@ -192,6 +192,6 @@ class UserServiceTest {
 
         User result = userService.loadOrProvisionUser(token);
 
-        assertThat(result.getRole()).isEqualTo(Role.LAGERIST);
+        assertThat(result.getRole()).isEqualTo(Role.WAREHOUSE_OPERATOR);
     }
 }

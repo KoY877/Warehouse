@@ -15,6 +15,7 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -23,6 +24,7 @@ import lombok.Setter;
 @Getter
 @Setter
 @NoArgsConstructor
+@AllArgsConstructor
 @Entity
 @Table(name = "Users")
 public class User {
@@ -68,7 +70,7 @@ public class User {
      * Request-DTO uebernommen.
      */
     public User(String firebaseUid, String email, String displayName) {
-        this(firebaseUid, email, displayName, Role.LAGERIST);
+        this(firebaseUid, email, displayName, Role.WAREHOUSE_OPERATOR);
     }
 
     /**

@@ -16,29 +16,23 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
-@Table(name = "Products")
-public class Products{
+@Table(name = "locations")
+public class Location{
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     @Column(length = 36, nullable = false, updatable = false)
     private String id;
 
-    @Column(nullable = false, unique = true)
-    private String sku;
+    @Column(length = 10, nullable = false)
+    private String code;
 
     @Column(nullable = false)
-    private String name;
-
-    @Column(nullable = false)
-    private String unit;
-
-    private Integer minStock = 0;
+    private Integer capacity = 0;
 
     @CreationTimestamp
     @Column(name="created_at", nullable = false, updatable = false)
