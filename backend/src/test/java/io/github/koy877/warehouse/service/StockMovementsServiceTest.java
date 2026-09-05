@@ -86,6 +86,46 @@ class StockMovementsServiceTest {
         }
 
         @Test
+        void createStockMovements_inboundAddsQuantityToTargetLocation() {
+                Product product = new Product();
+                product.setId("product-1");
+
+                Location targetLocation = new Location();
+                targetLocation.setId("target-1");
+
+                Stocks existingStock = new Stocks();
+                existingStock.setProduct(product);
+                existingStock.setLocation(targetLocation);
+                existingStock.setQuantity(2);
+
+                when(productRepository.findById("product-1")).thenReturn(Optional.of(product));
+                when(locationRepository.findById("target-1")).thenReturn(Optional.of(targetLocation));
+                when(stocksRepository.findByProductIdAndLocationId("product-1", "target-1"))
+                                .thenReturn(Optional.of(existingStock));
+                when(stocksRepository.save(any(Stocks.class))).thenAnswer(invocation -> invocation.getArgument(0));
+                when(stockMovementsRepository.save(any(StockMovement.class))).thenAnswer(invocation -> {
+                        StockMovement movement = invocation.getArgument(0);
+                        movement.setId("movement-1");
+                        return movement;
+                });
+
+                Stock_movementsCreateRequest request = new Stock_movementsCreateRequest(
+                                "product-1",
+                                null,
+                                "target-1",
+                                MovementType.INBOUND,
+                                3);
+
+                Stock_movementsResponse response = stockMovementsService.createStock_movements(request);
+
+                assertThat(response).isNotNull();
+                assertThat(response.type()).isEqualTo(MovementType.INBOUND);
+                assertThat(existingStock.getQuantity()).isEqualTo(5);
+                verify(stocksRepository).save(existingStock);
+                verify(stockMovementsRepository).save(any(StockMovement.class));
+        }
+
+        @Test
         void createStockMovements_outboundAcceptsSourceOnly() {
                 Product product = new Product();
                 product.setId("product-1");
@@ -93,7 +133,7 @@ class StockMovementsServiceTest {
                 Location sourceLocation = new Location();
                 sourceLocation.setId("source-1");
 
-                // Bestand vorhanden: 10 Stück an Quellort
+                // Stock available: 10 units at the source location
                 Stocks existingStock = new Stocks();
                 existingStock.setProduct(product);
                 existingStock.setLocation(sourceLocation);
@@ -102,11 +142,11 @@ class StockMovementsServiceTest {
                 when(productRepository.findById("product-1")).thenReturn(Optional.of(product));
                 when(locationRepository.findById("source-1")).thenReturn(Optional.of(sourceLocation));
 
-                // StocksRepository Mock: Bestand existiert
+                // StocksRepository mock: stock exists
                 when(stocksRepository.findByProductIdAndLocationId("product-1", "source-1"))
                                 .thenReturn(Optional.of(existingStock));
 
-                // StocksRepository Mock: Nach Update wird Bestand gespeichert
+                // StocksRepository mock: stock is saved after the update
                 when(stocksRepository.save(any(Stocks.class))).thenAnswer(invocation -> {
                         Stocks stock = invocation.getArgument(0);
                         stock.setQuantity(5); // 10 - 5 = 5
@@ -131,9 +171,9 @@ class StockMovementsServiceTest {
                 assertThat(response).isNotNull();
                 assertThat(response.type()).isEqualTo(MovementType.OUTBOUND);
 
-                // Verifiziere: Stocks wurde geprüft und aktualisiert
-                // findByProductIdAndLocationId wird 2x aufgerufen: 1x in checkOutboundStock, 1x
-                // in updateStock
+                // Verify: Stocks was checked and updated
+                // findByProductIdAndLocationId is called twice: once in checkOutboundStock,
+                // once in updateStock
                 verify(stocksRepository, times(2)).findByProductIdAndLocationId("product-1", "source-1");
                 verify(stocksRepository).save(any(Stocks.class));
                 verify(stockMovementsRepository).save(any(StockMovement.class));
@@ -164,7 +204,7 @@ class StockMovementsServiceTest {
                 Stocks existingStock = new Stocks();
                 existingStock.setProduct(product);
                 existingStock.setLocation(sourceLocation);
-                existingStock.setQuantity(3); // Bestand: 3
+                existingStock.setQuantity(3); // Stock: 3
 
                 when(productRepository.findById("product-2")).thenReturn(Optional.of(product));
                 when(locationRepository.findById("source-2")).thenReturn(Optional.of(sourceLocation));
@@ -177,9 +217,9 @@ class StockMovementsServiceTest {
                                 "source-2",
                                 null,
                                 MovementType.OUTBOUND,
-                                5); // Demande 5 → insuffisant (bestand = 3)
+                                5); // Requests 5 → insufficient (stock = 3)
 
-                // Test pour exception ConflictException
+                // Verifies that a ConflictException is thrown
                 assertThatThrownBy(() -> stockMovementsService.createStock_movements(request))
                                 .isInstanceOf(ConflictException.class)
                                 .hasMessageContaining("Insufficient stock");
