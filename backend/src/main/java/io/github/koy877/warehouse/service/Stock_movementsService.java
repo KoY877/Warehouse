@@ -162,20 +162,30 @@ public class Stock_movementsService {
          * Updates an existing stock movement record in place.
          *
          * EXPLANATION:
-         * 1. Validates the new request shape, same as creation.
-         * 2. Loads the existing movement or throws 404.
-         * 3. Re-resolves Product/Location/User exactly like createStock_movements().
-         * 4. Overwrites the movement fields and saves.
-         *
-         * WARNING: unlike createStock_movements(), this method does NOT touch the
-         * Stocks table. Editing a movement's quantity/type/locations here does not
-         * reverse the old booking or apply the new one, so Stocks can drift out of
-         * sync with the movement history. See Priority 2 in the project notes.
+         * 1. Loads the existing movement or throws 404 (id was previously unused;
+         * this is the fix for the Priority 2 issue).
+         * 2. Reverses the inventory effect the OLD movement applied, using the
+         * OLD movement's own product/locations/quantity/type, so Stocks reflects
+         * "as if this movement had never happened" before the new one is booked.
+         * 3. Validates the new request shape, same as creation.
+         * 4. Re-resolves Product/Location/User exactly like createStock_movements().
+         * 5. Checks outbound stock against the ALREADY-REVERSED baseline, then
+         * applies the new booking.
+         * 6. Overwrites the existing movement's fields and saves the SAME row,
+         * instead of inserting a new one.
          */
         @Transactional
-        public Stock_movementsResponse updateStock_movement(@NotNull Stock_movementsCreateRequest request,
+        public Stock_movementsResponse updateStock_movement(@Valid @NotNull Stock_movementsCreateRequest request,
                         @NotNull String id) {
-                                
+
+                StockMovement existing = stock_movementsRepository.findById(id)
+                                .orElseThrow(() -> new ResourceNotFoundException("StockMovement not found: " + id));
+
+                // Undo the old booking's effect on Stocks before applying the new one,
+                // otherwise this update would stack on top of the original instead of
+                // replacing it.
+                reverseStockEffect(existing);
+
                 // Reject requests where source/target locations don't match the movement
                 // type (e.g. INBOUND with a source location).
                 validateMovementRequest(request);
@@ -209,8 +219,9 @@ public class Stock_movementsService {
                 }
 
                 // Step 1: For OUTBOUND and TRANSFER, check that enough source stock is
-                // available. Both movement types subtract from the source location, so
-                // both must be guarded against negative stock.
+                // available, now that the old booking has been reversed. Both movement
+                // types subtract from the source location, so both must be guarded
+                // against negative stock.
                 if (request.type() == MovementType.OUTBOUND || request.type() == MovementType.TRANSFER) {
                         checkOutboundStock(product, sourceLocation, request.quantity());
                 }
@@ -233,19 +244,47 @@ public class Stock_movementsService {
                                 break;
                 }
 
-                // Step 3: Persist the movement itself (for audit/history), independently
-                // of the current stock level.
-                StockMovement stockMovement = new StockMovement();
-                stockMovement.setProduct(product);
-                stockMovement.setSourceLocation(sourceLocation);
-                stockMovement.setTargetLocation(targetLocation);
-                stockMovement.setUser(user);
-                stockMovement.setType(request.type());
-                stockMovement.setQuantity(request.quantity());
+                // Step 3: Overwrite the EXISTING movement row (for audit/history),
+                // instead of inserting a new one.
+                existing.setProduct(product);
+                existing.setSourceLocation(sourceLocation);
+                existing.setTargetLocation(targetLocation);
+                existing.setUser(user);
+                existing.setType(request.type());
+                existing.setQuantity(request.quantity());
 
-                StockMovement saved = stock_movementsRepository.save(stockMovement);
+                StockMovement saved = stock_movementsRepository.save(existing);
 
                 return Stock_MovementsMapper.toResponse(saved);
+        }
+
+        /**
+         * Reverses the inventory effect that an already-persisted StockMovement
+         * applied, using ITS OWN product/locations/quantity — not the incoming
+         * update request. This puts Stocks back to "as if this movement had never
+         * happened", so updateStock_movement() can safely book the new version on
+         * top of a clean baseline.
+         */
+        private void reverseStockEffect(StockMovement movement) {
+                switch (movement.getType()) {
+                        case INBOUND:
+                                // Original ADDED quantity at the target location; reverse: subtract it.
+                                updateStock(movement.getProduct(), movement.getTargetLocation(),
+                                                -movement.getQuantity());
+                                break;
+                        case OUTBOUND:
+                                // Original SUBTRACTED quantity from the source location; reverse: add it back.
+                                updateStock(movement.getProduct(), movement.getSourceLocation(),
+                                                movement.getQuantity());
+                                break;
+                        case TRANSFER:
+                                // Original left the source and arrived at the target; reverse both legs.
+                                updateStock(movement.getProduct(), movement.getSourceLocation(),
+                                                movement.getQuantity());
+                                updateStock(movement.getProduct(), movement.getTargetLocation(),
+                                                -movement.getQuantity());
+                                break;
+                }
         }
 
         /**

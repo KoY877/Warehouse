@@ -30,35 +30,36 @@ public class LocationController {
     private final LocationService locationService;
 
     @PostMapping
-    @PreAuthorize("hasAnyRole('ADMIN'), 'WAREHOUSE_OPERATOR')")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<LocationResponse> createLocatiion (@RequestBody @Valid LocationCreateRequest request) {
         LocationResponse response = locationService.createLocation(request);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
      
     @GetMapping
-    @PreAuthorize("hasAnyRole('ADMIN', 'WAREHOUSE_OPERATOR')")
+    @PreAuthorize("hasAnyRole('ADMIN','WAREHOUSE_OPERATOR')")
     public ResponseEntity<List<LocationResponse>> getAllProducts () {
         
         return ResponseEntity.ok(locationService.getAllLocations());
     }
 
     @GetMapping("/{id}")
-    @PreAuthorize("hasAnyRole('ADMIN', 'WAREHOUSE_OPERATOR')")
+    @PreAuthorize("hasAnyRole('ADMIN','WAREHOUSE_OPERATOR')")
     public ResponseEntity<LocationResponse> getLocationById (@PathVariable String id) {
         
         return ResponseEntity.ok(locationService.getLocationById(id));
     }
 
     @PatchMapping("/{id}")
-    @PreAuthorize("hasAnyRole('ADMIN'), 'WAREHOUSE_OPERATOR')")
-    public ResponseEntity<LocationResponse> updateLocatiion (@RequestBody @Valid LocationCreateRequest request, @NotBlank String id) {
+    @PreAuthorize("hasAnyRole('ADMIN','WAREHOUSE_OPERATOR')")
+    public ResponseEntity<LocationResponse> updateLocatiion (@RequestBody @Valid LocationCreateRequest request,
+        @PathVariable @NotBlank String id) {
         LocationResponse response = locationService.updateLocation(request, id);
         return ResponseEntity.status(HttpStatus.OK).body(response);
     }
 
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasAnyRole('ADMIN'), 'WAREHOUSE_OPERATOR')")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Void> deleteLocatiion (@PathVariable @NotNull String id) {
        // Delete the ticket then return an empty 204 response
         locationService.deleteLocation(id);;

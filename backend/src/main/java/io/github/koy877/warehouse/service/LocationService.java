@@ -14,7 +14,6 @@ import io.github.koy877.warehouse.exception.ResourceNotFoundException;
 import io.github.koy877.warehouse.repositories.LocationRepository;
 import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 
 @Service
 @RequiredArgsConstructor

@@ -29,37 +29,39 @@ public class ProductController {
 
     private final ProductService productService;
 
-    @PostMapping
+    
     @PreAuthorize("hasRole('ADMIN')")
+    @PostMapping
     public ResponseEntity<ProductResponse> createProduct(@RequestBody @Valid ProductCreateRequest request) {
         ProductResponse response = productService.createProduct(request);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
+    
+    @PreAuthorize("hasAnyRole('ADMIN','WAREHOUSE_OPERATOR')")
     @GetMapping
-    @PreAuthorize("hasAnyRole('ADMIN', 'WAREHOUSE_OPERATOR')")
     public ResponseEntity<List<ProductResponse>> getAllProducts() {
 
         return ResponseEntity.ok(productService.getAllProducts());
     }
 
+    @PreAuthorize("hasAnyRole('ADMIN','WAREHOUSE_OPERATOR')")
     @GetMapping("/{id}")
-    @PreAuthorize("hasAnyRole('ADMIN', 'WAREHOUSE_OPERATOR')")
     public ResponseEntity<ProductResponse> getProductById(@PathVariable String id) {
 
         return ResponseEntity.ok(productService.getProductById(id));
     }
-
+    
+    @PreAuthorize("hasAnyRole('ADMIN','WAREHOUSE_OPERATOR')")
     @PatchMapping("/{id}")
-    @PreAuthorize("hasAnyRole('ADMIN'), 'WAREHOUSE_OPERATOR')")
     public ResponseEntity<ProductResponse> updateProduct(@RequestBody @Valid ProductCreateRequest request,
             @PathVariable @NotNull String id) {
         ProductResponse response = productService.updateProduct(request, id);
         return ResponseEntity.status(HttpStatus.OK).body(response);
     }
-
+    
+    @PreAuthorize("hasRole('ADMIN')")
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasAnyRole('ADMIN'), 'WAREHOUSE_OPERATOR')")
     public ResponseEntity<Void> deleteProduct(@PathVariable @NotNull String id) {
         // Delete the ticket then return an empty 204 response
         productService.deleteProduct(id);

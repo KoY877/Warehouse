@@ -174,18 +174,15 @@ See the Notion documentation:
 
 # Business Rules
 
-**TBD – Not finalized. Do not implement without confirmation.**
+**Decided and binding (confirmed September 5, 2026).** This rule may not be changed without explicit confirmation, same as the transition rule table in the Helpdesk project.
 
-Should `POST /api/movements` enforce an inventory check during outbound movements?
+| Movement type | Inventory check on source location                       | Outcome when insufficient |
+| -------------- | ---------------------------------------------------------- | -------------------------- |
+| INBOUND        | Not applicable (no source location)                        | —                           |
+| OUTBOUND       | Required — available quantity must be >= requested quantity | `409 Conflict`              |
+| TRANSFER       | Required — available quantity must be >= requested quantity | `409 Conflict`              |
 
-Options:
-
-* Reject when inventory would become negative (`409 Conflict`)
-* Allow negative inventory
-
-This business rule must be finalized before implementing the service layer.
-
-Once decided, it will be documented here as a mandatory rule table.
+Negative inventory is never allowed. This is implemented in `Stock_movementsService.checkOutboundStock()` and covered by `StockMovementsServiceTest`.
 
 # Roles
 
@@ -237,8 +234,3 @@ A feature is **not considered complete** until the corresponding tests are imple
   * `fix:`
   * `refactor:`
 
-# Remaining Tasks (Current Design Phase)
-
-* Finalize the inventory validation rule.
-* Set up the repository (Monorepo, following `KoY877/helpdesk`).
-* Implement the first entity.
